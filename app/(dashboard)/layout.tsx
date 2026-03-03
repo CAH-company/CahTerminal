@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import PremiumBadge from "@/components/PremiumBadge";
+import Sidebar from "@/components/Sidebar";
 
 export default async function DashboardLayout({
   children,
@@ -31,18 +33,21 @@ export default async function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="flex min-h-screen flex-col bg-black text-white">
       <header className="flex items-center justify-between border-b border-neutral-800 px-4 py-2">
         <div className="flex items-center gap-3">
-          <span className="font-mono text-sm font-bold text-amber-500">
+          <Link href="/portfolio" className="font-mono text-sm font-bold text-amber-500 hover:text-amber-400">
             CAH TERMINAL
-          </span>
+          </Link>
           <PremiumBadge role={role} />
         </div>
         <div className="flex items-center gap-4">
-          <span className="font-mono text-xs text-neutral-500">
+          <Link
+            href="/account"
+            className="font-mono text-xs text-neutral-500 hover:text-amber-500"
+          >
             {user.email}
-          </span>
+          </Link>
           <form action={handleSignOut}>
             <button
               type="submit"
@@ -53,7 +58,10 @@ export default async function DashboardLayout({
           </form>
         </div>
       </header>
-      {children}
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 overflow-auto">{children}</main>
+      </div>
     </div>
   );
 }
