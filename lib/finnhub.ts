@@ -57,6 +57,27 @@ export async function getBasicFinancials(symbol: string): Promise<{ metric: Finn
   return res.json();
 }
 
+export interface FinnhubSymbolMatch {
+  description: string;
+  displaySymbol: string;
+  symbol: string;
+  type: string;
+}
+
+export async function searchSymbols(query: string): Promise<FinnhubSymbolMatch[]> {
+  if (!query.trim()) return [];
+  const res = await fetch(
+    `${FINNHUB_BASE}/search?q=${encodeURIComponent(query)}&token=${getApiKey()}`,
+    { next: { revalidate: 60 } }
+  );
+  if (!res.ok) return [];
+  const data = await res.json();
+  // Filter to common stock types and limit results
+  return (data.result ?? [])
+    .filter((item: FinnhubSymbolMatch) => !item.symbol.includes("."))
+    .slice(0, 8);
+}
+
 export async function getQuotes(symbols: string[]): Promise<Record<string, FinnhubQuote>> {
   const results: Record<string, FinnhubQuote> = {};
   // Limit concurrent requests to avoid Finnhub API rate limits
