@@ -59,10 +59,11 @@ export async function getBasicFinancials(symbol: string): Promise<{ metric: Finn
 
 export async function getQuotes(symbols: string[]): Promise<Record<string, FinnhubQuote>> {
   const results: Record<string, FinnhubQuote> = {};
-  const batchSize = 5;
+  // Limit concurrent requests to avoid Finnhub API rate limits
+  const CONCURRENT_LIMIT = 5;
 
-  for (let i = 0; i < symbols.length; i += batchSize) {
-    const batch = symbols.slice(i, i + batchSize);
+  for (let i = 0; i < symbols.length; i += CONCURRENT_LIMIT) {
+    const batch = symbols.slice(i, i + CONCURRENT_LIMIT);
     const quotes = await Promise.all(batch.map((s) => getQuote(s)));
     batch.forEach((s, idx) => {
       results[s] = quotes[idx];

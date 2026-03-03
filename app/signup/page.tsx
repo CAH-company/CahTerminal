@@ -110,6 +110,7 @@ export default function SignUpPage() {
           value={birthDate}
           onChange={(e) => setBirthDate(e.target.value)}
           required
+          max={new Date().toISOString().split("T")[0]}
           className="mb-6 w-full border border-neutral-700 bg-neutral-950 px-3 py-2 font-mono text-sm text-white outline-none focus:border-amber-500"
         />
 

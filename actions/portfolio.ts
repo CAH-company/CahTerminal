@@ -51,7 +51,7 @@ export async function getPortfolio(): Promise<PortfolioSummary> {
     { totalQty: number; totalCost: number }
   > = {};
 
-  for (const tx of (transactions as Transaction[]) || []) {
+  for (const tx of transactions as Transaction[]) {
     if (!holdings[tx.ticker]) {
       holdings[tx.ticker] = { totalQty: 0, totalCost: 0 };
     }
