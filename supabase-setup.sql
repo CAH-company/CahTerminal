@@ -15,13 +15,15 @@ CREATE TABLE IF NOT EXISTS transactions (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- 2. Add missing columns if table already exists
+-- 2. Add missing columns if table already exists (safe to run on existing tables)
+-- NOTE: These use defaults only for the ALTER operation; the CHECK constraints
+-- on the CREATE TABLE above enforce proper values for new inserts.
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE;
-ALTER TABLE transactions ADD COLUMN IF NOT EXISTS ticker text NOT NULL DEFAULT '';
-ALTER TABLE transactions ADD COLUMN IF NOT EXISTS type text NOT NULL DEFAULT 'BUY';
-ALTER TABLE transactions ADD COLUMN IF NOT EXISTS quantity numeric NOT NULL DEFAULT 0;
-ALTER TABLE transactions ADD COLUMN IF NOT EXISTS price numeric NOT NULL DEFAULT 0;
-ALTER TABLE transactions ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now();
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS ticker text;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS type text;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS quantity numeric;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS price numeric;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS created_at timestamptz DEFAULT now();
 
 -- 3. Create index for faster queries
 CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
