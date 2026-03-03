@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getQuote, getCompanyProfile, getBasicFinancials } from "@/lib/finnhub";
+import { getQuote, getCompanyProfile, getBasicFinancials, searchSymbols as finnhubSearch } from "@/lib/finnhub";
 
 const WATCHED_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "SPY"];
 
@@ -77,4 +77,71 @@ export async function getMarketData(): Promise<MarketCacheEntry[]> {
 
   if (error) throw new Error(error.message);
   return (data as MarketCacheEntry[]) ?? [];
+}
+
+export interface SymbolSearchResult {
+  symbol: string;
+  description: string;
+  displaySymbol: string;
+  type: string;
+}
+
+export async function searchTickers(query: string): Promise<SymbolSearchResult[]> {
+  if (!query || query.trim().length === 0) return [];
+  const results = await finnhubSearch(query.trim());
+  return results.map((r) => ({
+    symbol: r.symbol,
+    description: r.description,
+    displaySymbol: r.displaySymbol,
+    type: r.type,
+  }));
+}
+
+export interface TickerDetail {
+  symbol: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  high: number;
+  low: number;
+  open: number;
+  prevClose: number;
+  companyName: string | null;
+  marketCap: number | null;
+  industry: string | null;
+}
+
+export async function getTickerDetail(symbol: string): Promise<TickerDetail | null> {
+  if (!symbol) return null;
+  try {
+    const quote = await getQuote(symbol.toUpperCase());
+    let companyName: string | null = null;
+    let marketCap: number | null = null;
+    let industry: string | null = null;
+
+    try {
+      const profile = await getCompanyProfile(symbol.toUpperCase());
+      companyName = profile.name ?? null;
+      marketCap = profile.marketCapitalization ?? null;
+      industry = profile.finnhubIndustry ?? null;
+    } catch {
+      // Non-critical
+    }
+
+    return {
+      symbol: symbol.toUpperCase(),
+      price: quote.c,
+      change: quote.d,
+      changePercent: quote.dp,
+      high: quote.h,
+      low: quote.l,
+      open: quote.o,
+      prevClose: quote.pc,
+      companyName,
+      marketCap,
+      industry,
+    };
+  } catch {
+    return null;
+  }
 }
